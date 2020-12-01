@@ -1,0 +1,16 @@
+name: Advent of Code
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Day 01
+      run: python3 -m unittest impl.py
+      working-directory: ./day01
+
