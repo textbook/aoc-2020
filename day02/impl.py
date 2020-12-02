@@ -11,7 +11,7 @@ class PuzzleTest(unittest.TestCase):
     ]
 
     def test_example(self):
-        self.assertEqual(puzzle(self.example), 2)
+        self.assertEqual(puzzle(self.example), 1)
     
     def test_validate(self):
         self.assertTrue(validate("1-3 a: abcde"))
@@ -20,9 +20,9 @@ class PuzzleTest(unittest.TestCase):
 
 def validate(line):
     pattern, value =line.split(": ")
-    min_max, char = pattern.split(" ")
-    min_, max_ = min_max.split("-")
-    return int(min_) <= value.count(char) <= int(max_)
+    first_second, char = pattern.split(" ")
+    first, second = map(int, first_second.split("-"))
+    return (value[first - 1] == char) ^ (value[second - 1] == char)
 
 
 def puzzle(passwords):
