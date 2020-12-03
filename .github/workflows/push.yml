@@ -16,3 +16,6 @@ jobs:
     - name: Day 02
       run: python3 -m unittest impl.py
       working-directory: ./day02
+    - name: Day 03
+      run: python3 -m unittest impl.py
+      working-directory: ./day03

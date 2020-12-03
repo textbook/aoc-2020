@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+from functools import reduce
+from operator import mul
 from textwrap import dedent
 import unittest
 
@@ -19,11 +21,15 @@ class PuzzleTest(unittest.TestCase):
         .#..#...#.#
     """).strip()
 
-    def test_puzzle(self):
-        self.assertEqual(puzzle(self.example, (3, 1)), 7)
+    def test_check_slope(self):
+        self.assertEqual(check_slope(self.example, (3, 1)), 7)
 
 
-def puzzle(map, slope):
+def product(values):
+    return reduce(mul, values, 1)
+
+
+def check_slope(map, slope):
     x, y = 0, 0
     dx, dy = slope
     lines = map.split()
@@ -37,9 +43,14 @@ def puzzle(map, slope):
     return trees
 
 
+def puzzle(map, slopes):
+    return product(check_slope(map, slope) for slope in slopes)
+
+
 if __name__ == "__main__":
-    import sys
-    x, y = map(int, sys.argv[1:])
     with open("input.txt") as f:
-        print(puzzle(f.read().strip(), (x, y)))
+        print(puzzle(
+            f.read().strip(),
+            [(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)],
+        ))
 
