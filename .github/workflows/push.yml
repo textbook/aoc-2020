@@ -10,12 +10,5 @@ jobs:
     - uses: actions/setup-python@v2
       with:
         python-version: 3.9
-    - name: Day 01
-      run: python3 -m unittest impl.py
-      working-directory: ./day01
-    - name: Day 02
-      run: python3 -m unittest impl.py
-      working-directory: ./day02
-    - name: Day 03
-      run: python3 -m unittest impl.py
-      working-directory: ./day03
+    - name: Run Python tests
+      run: python3 -m unittest */impl.py
