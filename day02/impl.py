@@ -19,7 +19,7 @@ class PuzzleTest(unittest.TestCase):
 
 
 def validate(line):
-    pattern, value =line.split(": ")
+    pattern, value = line.split(": ")
     first_second, char = pattern.split(" ")
     first, second = map(int, first_second.split("-"))
     return (value[first - 1] == char) ^ (value[second - 1] == char)
