@@ -8,6 +8,11 @@ class PuzzleTest(unittest.TestCase):
     def test_examples(self):
         for in_, out in [
             ("FBFBBFFRLR", 357),
+            ("FBFBBFFRRL", 358),
+            ("FBFBBFFRRR", 359),
+            ("FBFBBFBLLL", 360),
+            ("FBFBBFBLLR", 361),
+            ("FBFBBFBLRL", 362),
             ("BFFFBBFRRR", 567),
             ("FFFBBBFRRR", 119),
             ("BBFFBBFRLL", 820),
@@ -18,10 +23,11 @@ class PuzzleTest(unittest.TestCase):
     def test_puzzle(self):
         self.assertEqual(puzzle(dedent("""
             FBFBBFFRLR
-            BFFFBBFRRR
-            FFFBBBFRRR
-            BBFFBBFRLL
-        """.strip())), 820)
+            FBFBBFFRRL
+            FBFBBFBLLL
+            FBFBBFBLLR
+            FBFBBFBLRL
+        """.strip())), 359)
 
 
 def bisect(code, front):
@@ -39,7 +45,10 @@ def seat_id(seat):
 
 
 def puzzle(data):
-    return max(seat_id(seat) for seat in data.split())
+    present = sorted(seat_id(seat) for seat in data.split())
+    for index in range(1, len(present)):
+        if present[index - 1] != present[index] - 1:
+            return present[index] - 1
 
 
 if __name__ == "__main__":
