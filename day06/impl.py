@@ -24,15 +24,16 @@ class PuzzleTest(unittest.TestCase):
     """.strip())
 
     def test_puzzle(self):
-        self.assertEqual(puzzle(self.example), 11)
+        self.assertEqual(puzzle(self.example), 6)
 
 
 def puzzle(data):
     total = 0
     for group in data.split("\n\n"):
-        answers = set()
-        for person in group.split():
-            answers.update(person)
+        people = group.split()
+        answers = set(people[0])
+        for person in people[1:]:
+            answers.intersection_update(person)
         total += len(answers)
     return total
 
