@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from os.path import dirname
 import re
 from textwrap import dedent
 import unittest
@@ -160,5 +161,5 @@ def puzzle(data, rules):
 
 
 if __name__ == "__main__":
-    with open("input.txt") as f:
+    with open(f"{dirname(__file__)}/input.txt") as f:
         print(puzzle(f.read().strip(), RULES))

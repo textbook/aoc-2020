@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+from os.path import dirname
 import unittest
 
 
@@ -33,7 +34,7 @@ def puzzle(passwords):
 
 
 if __name__ == "__main__":
-    with open("input.txt") as f:
+    with open(f"{dirname(__file__)}/input.txt") as f:
         print(puzzle([
             line.strip()
             for line in f.readlines()

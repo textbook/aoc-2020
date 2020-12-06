@@ -2,6 +2,7 @@
 from functools import reduce
 from itertools import combinations
 from operator import mul
+from os.path import dirname
 import unittest
 
 
@@ -31,7 +32,7 @@ def puzzle(numbers, count):
 
 if __name__ == "__main__":
     import sys
-    with open("input.txt") as f:
+    with open(f"{dirname(__file__)}/input.txt") as f:
         print(puzzle([
             int(line.strip())
             for line in f.readlines()

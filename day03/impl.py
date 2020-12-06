@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from functools import reduce
 from operator import mul
+from os.path import dirname
 from textwrap import dedent
 import unittest
 
@@ -48,7 +49,7 @@ def puzzle(map, slopes):
 
 
 if __name__ == "__main__":
-    with open("input.txt") as f:
+    with open(f"{dirname(__file__)}/input.txt") as f:
         print(puzzle(
             f.read().strip(),
             [(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)],
