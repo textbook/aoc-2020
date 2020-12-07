@@ -20,7 +20,7 @@ class PuzzleTest(unittest.TestCase):
             faded blue bags contain no other bags.
             dotted black bags contain no other bags.
         """.strip())
-        self.assertEqual(puzzle(example, "shiny gold"), 32)
+        self.assertEqual(32, puzzle(example, "shiny gold"))
 
     def test_example_2(self):
         example = dedent("""
@@ -32,19 +32,31 @@ class PuzzleTest(unittest.TestCase):
             dark blue bags contain 2 dark violet bags.
             dark violet bags contain no other bags.
         """.strip())
-        self.assertEqual(puzzle(example, "shiny gold"), 126)
+        self.assertEqual(126, puzzle(example, "shiny gold"))
+
+
+def memoize(func):
+    def wrapper(*args):
+        if args not in wrapper.cache:
+            wrapper.cache[args] = func(*args)
+        return wrapper.cache[args]
+    wrapper.cache = {}
+    return wrapper
 
 
 def puzzle(rules, start):
     containers = create_container_map(rules)
-    total = 0
-    to_visit = [start]
-    while to_visit:
-        visiting = to_visit.pop()
-        for container, count in containers[visiting].items():
-            total += count
-            to_visit.extend([container] * count)
-    return total
+
+    @memoize
+    def contains(bag):
+        if bag not in containers:
+            return 0
+        return sum(
+            count * (1 + contains(container))
+            for container, count in containers[bag].items()
+        )
+
+    return contains(start)
 
 
 def create_container_map(rules):
