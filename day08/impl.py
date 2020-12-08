@@ -23,7 +23,10 @@ class PuzzleTest(unittest.TestCase):
 
 
 class InfiniteLoop(Exception):
-    pass
+
+    def __init__(self, visited):
+        super().__init__("infinite loop detected")
+        self.visited = visited
 
 
 Operation = namedtuple("Operation", ("accumulate", "jump"))
@@ -48,7 +51,7 @@ def execute(program):
 
     while True:
         if pointer in visited:
-            raise InfiniteLoop
+            raise InfiniteLoop(visited)
         if pointer >= len(program):
             return accumulator
         visited.add(pointer)
@@ -57,10 +60,20 @@ def execute(program):
         pointer += op.jump
 
 
+def get_visited(lines):
+    """Get the set of indices visited before the loop."""
+    try:
+        execute(lines)
+    except InfiniteLoop as loop:
+        return loop.visited
+    raise ValueError("no loop found")
+
+
 def puzzle(program):
     lines = [(op, int(val)) for op, val in map(str.split, program)]
+    visited = get_visited(lines)
     for index, (op, val) in enumerate(lines):
-        if op in CHANGES:
+        if index in visited and op in CHANGES:
             new_program = lines[:]
             new_program[index] = CHANGES[op], val
             try:
