@@ -18,17 +18,24 @@ class PuzzleTest(unittest.TestCase):
     ]
 
     def test_puzzle(self):
-        self.assertEqual(5, puzzle(self.example))
+        self.assertEqual(8, puzzle(self.example))
 
 
-def puzzle(program):
+def execute(program):
+    """Return the value of the accumulator when the program ends.
+
+    Return None if the program loops.
+
+    """
     accumulator = 0
     pointer = 0
     visited = set()
 
     while True:
         if pointer in visited:
-            break
+            return None
+        if pointer >= len(program):
+            return accumulator
         op = program[pointer]
         visited.add(pointer)
         if op.startswith("nop"):
@@ -39,7 +46,15 @@ def puzzle(program):
             accumulator += int(op.split()[1])
             pointer += 1
 
-    return accumulator
+
+def puzzle(program):
+    for index, line in enumerate(program):
+        if line.startswith(("nop", "jmp")):
+            new_program = program[:]
+            op, acc = line.split()
+            new_program[index] = f"{'nop' if op == 'jmp' else 'jmp'} {acc}"
+            if (result := execute(new_program)) is not None:
+                return result
 
 
 if __name__ == "__main__":
