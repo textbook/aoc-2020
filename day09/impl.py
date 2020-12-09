@@ -30,7 +30,7 @@ class PuzzleTest(unittest.TestCase):
     ]
 
     def test_puzzle(self):
-        self.assertEqual(127, puzzle(self.example, 5))
+        self.assertEqual(62, puzzle(self.example, 5))
 
 
 def is_valid(target, window):
@@ -38,13 +38,23 @@ def is_valid(target, window):
     return any(a + b == target for a, b in combinations(window, 2))
 
 
-def puzzle(data, preamble):
-    index = 0
-    while True:
+def invalid_value(data, preamble):
+    """Get the first invalid value in data."""
+    for index in range(len(data)):
         value = data[index + preamble]
         if not is_valid(value, islice(data, index, index + preamble)):
             return value
-        index += 1
+
+
+def puzzle(data, preamble):
+    target = invalid_value(data, preamble)
+    for index in range(len(data)):
+        for length in range(0, len(data) - index):
+            if sum(data[i] for i in range(index, index + length)) == target:
+                return (
+                    min(data[i] for i in range(index, index + length))
+                    + max(data[i] for i in range(index, index + length))
+                )
 
 
 if __name__ == "__main__":
