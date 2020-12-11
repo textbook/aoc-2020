@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
+from itertools import count
 from os.path import dirname
 from textwrap import dedent
 import unittest
 
+DIRECTIONS = [
+    (-1, -1), (-1, +0), (-1, +1),
+    (+0, -1),           (+0, +1),
+    (+1, -1), (+1, +0), (+1, +1),
+]
 EMPTY = "L"
 FLOOR = "."
 OCCUPIED = "#"
@@ -24,32 +30,40 @@ class PuzzleTests(unittest.TestCase):
     """).strip()
 
     def test_puzzle(self):
-        self.assertEqual(37, puzzle(self.example))
+        self.assertEqual(26, puzzle(self.example))
 
 
 def new_state(seat, neighbours):
     if seat == EMPTY and all(s != OCCUPIED for s in neighbours):
         return OCCUPIED
-    elif seat == OCCUPIED and sum(s == OCCUPIED for s in neighbours) >= 4:
+    elif seat == OCCUPIED and sum(s == OCCUPIED for s in neighbours) >= 5:
         return EMPTY
     return seat
 
 
+def create_seat_getter(row_index, seat_index, seat_map):
+    def get_first_seat(direction):
+        row_delta, seat_delta = direction
+        for factor in count(1):
+            neighbour_row = row_index + (row_delta * factor)
+            neighbour_seat = seat_index + (seat_delta * factor)
+            if (
+                neighbour_row < 0
+                or neighbour_row >= len(seat_map)
+                or neighbour_seat < 0
+                or neighbour_seat >= len(seat_map[0])
+            ):
+                return None
+            seat = seat_map[neighbour_row][neighbour_seat]
+            if seat == FLOOR:
+                continue
+            return seat
+    return get_first_seat
+
+
 def get_neighbours(row_index, seat_index, seat_map):
-    return [
-        seat_map[row_index + row_delta][seat_index + seat_delta]
-        for row_delta, seat_delta in [
-            (-1, -1), (-1, +0), (-1, +1),
-            (+0, -1),           (+0, +1),
-            (+1, -1), (+1, +0), (+1, +1),
-        ]
-        if all((
-            row_index + row_delta >= 0,
-            row_index + row_delta < len(seat_map),
-            seat_index + seat_delta >= 0,
-            seat_index + seat_delta < len(seat_map[0]),
-        ))
-    ]
+    seat_getter = create_seat_getter(row_index, seat_index, seat_map)
+    return [seat for seat in map(seat_getter, DIRECTIONS) if seat is not None]
 
 
 def iterate(seat_map):
