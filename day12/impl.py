@@ -8,29 +8,32 @@ FORWARD, LEFT, RIGHT, NORTH, EAST, SOUTH, WEST = 'FLRNESW'
 
 def puzzle(instructions):
     latitude, longitude = 0, 0
-    direction = EAST
+    waypoint = (1, 10)
 
     for line in instructions.split("\n"):
         instruction = line[0]
         value = int(line[1:])
-        if instruction in (LEFT, RIGHT):
-            direction = new_direction(direction, instruction, value)
-            continue
         if instruction == FORWARD:
-            instruction = direction
-        latitude, longitude = new_position(latitude, longitude, instruction, value)
+            latitude += waypoint[0] * value
+            longitude += waypoint[1] * value
+        elif instruction in (NORTH, EAST, SOUTH, WEST):
+            waypoint = new_position(waypoint, instruction, value)
+        else:
+            waypoint = rotate_waypoint(waypoint, instruction, value)
 
     return abs(latitude) + abs(longitude)
 
 
-def new_direction(direction, instruction, value):
-    ordered = [NORTH, EAST, SOUTH, WEST]
-    index = ordered.index(direction)
-    shift = (value // 90) * (1 if instruction == RIGHT else -1)
-    return ordered[(index + shift) % 4]
+def rotate_waypoint(position, instruction, degrees):
+    latitude, longitude = position
+    degrees = degrees if instruction == RIGHT else (360 - degrees)
+    for _ in range((degrees // 90) % 4):
+        latitude, longitude = longitude * -1, latitude
+    return latitude, longitude
 
 
-def new_position(latitude, longitude, direction, value):
+def new_position(position, direction, value):
+    latitude, longitude = position
     if direction == NORTH:
         return latitude + value, longitude
     elif direction == SOUTH:
@@ -52,7 +55,7 @@ class PuzzleTests(unittest.TestCase):
     """).strip()
 
     def test_puzzle(self):
-        self.assertEqual(25, puzzle(self.example))
+        self.assertEqual(286, puzzle(self.example))
 
 
 if __name__ == "__main__":
