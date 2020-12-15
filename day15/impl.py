@@ -14,7 +14,7 @@ def puzzle(start, target):
 
 class PuzzleTests(TestCase):
 
-    def test_puzzle(self):
+    def test_puzzle_short(self):
         for start, expected in [
             ([0, 3, 6], 436),
             ([1, 3, 2], 1),
@@ -27,6 +27,19 @@ class PuzzleTests(TestCase):
             with self.subTest(start=start):
                 self.assertEqual(expected, puzzle(start, 2020))
 
+    def test_puzzle_long(self):
+        for start, expected in [
+            ([0, 3, 6], 175594),
+            ([1, 3, 2], 2578),
+            ([2, 1, 3], 3544142),
+            ([1, 2, 3], 261214),
+            ([2, 3, 1], 6895259),
+            ([3, 2, 1], 18),
+            ([3, 1, 2], 362),
+        ]:
+            with self.subTest(start=start):
+                self.assertEqual(expected, puzzle(start, 30_000_000))
+
 
 if __name__ == "__main__":
-    print(puzzle([1, 0, 18, 10, 19, 6], 2020))
+    print(puzzle([1, 0, 18, 10, 19, 6], 30_000_000))
