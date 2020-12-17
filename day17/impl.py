@@ -52,17 +52,18 @@ class State:
         )
 
     def cycle(self) -> State:
-        return type(self)({
-            location
-            for location in product(*(range(min_ - 1, max_ + 2) for min_, max_ in self._bounds))
-            if self._is_active(location)
-        })
+        may_change = self._active_cells.union(
+            neighbour
+            for active_cell in self._active_cells
+            for neighbour in self._neighbours(active_cell)
+        )
+        return type(self)({location for location in may_change if self._will_be_active(location)})
 
     @property
     def active_cell_count(self) -> int:
         return len(self._active_cells)
 
-    def _is_active(self, location: Location) -> bool:
+    def _will_be_active(self, location: Location) -> bool:
         cell = self.ACTIVE if location in self._active_cells else self.INACTIVE
         active_neighbours = sum(
             neighbour in self._active_cells
