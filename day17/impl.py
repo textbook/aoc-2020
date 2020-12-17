@@ -6,8 +6,7 @@ from textwrap import dedent
 from typing import Generator
 from unittest import TestCase
 
-DIMENSIONS = 4
-Location = tuple[int, int, int, int]
+Location = tuple[int, ...]
 
 
 class State:
@@ -18,26 +17,22 @@ class State:
 
     """
 
-    ACTIVE = "#"
-    INACTIVE = "."
-    NEIGHBOURS = [
-        location
-        for location in product((-1, 0, 1), repeat=DIMENSIONS)
-        if any(value != 0 for value in location)
-    ]
+    ACTIVE: str = "#"
+    DIMENSIONS: int = None
+    INACTIVE: str = "."
+    NEIGHBOURS: list[Location] = None
 
     def __init__(self, active_cells: set[Location]):
         self._active_cells = active_cells
-        self._bounds = [
-            (
-                min(location[dimension] for location in active_cells),
-                max(location[dimension] for location in active_cells),
-            )
-            for dimension in range(DIMENSIONS)
-        ]
 
     def __str__(self):
-        (min_x, max_x), (min_y, max_y), *higher = self._bounds
+        (min_x, max_x), (min_y, max_y), *higher = [
+            (
+                min(location[dimension] for location in self._active_cells),
+                max(location[dimension] for location in self._active_cells),
+            )
+            for dimension in range(self.DIMENSIONS)
+        ]
         return "\n\n".join(
             "\n".join([", ".join(f"{label}={value}" for label, value in zip("zw", location))] + [
                 "".join(
@@ -57,7 +52,11 @@ class State:
             for active_cell in self._active_cells
             for neighbour in self._neighbours(active_cell)
         )
-        return type(self)({location for location in may_change if self._will_be_active(location)})
+        return type(self)({
+            location
+            for location in may_change
+            if self._will_be_active(location)
+        })
 
     @property
     def active_cell_count(self) -> int:
@@ -75,9 +74,13 @@ class State:
         )
 
     @classmethod
-    def from_string(cls, initial_state: str) -> State:
-        return cls({
-            (x, y, *(0 for _ in range(DIMENSIONS - 2)))
+    def create(cls, dimensions: int, initial_state: str) -> State:
+        """Create instance of State subclass with appropriate dimensions."""
+        return type(f"{cls.__name__}{dimensions}d", (cls,), dict(
+            DIMENSIONS=dimensions,
+            NEIGHBOURS=cls._neighbour_offsets(dimensions),
+        ))({
+            (x, y, *(0 for _ in range(dimensions - 2)))
             for y, row in enumerate(initial_state.split("\n"))
             for x, value in enumerate(row)
             if value == cls.ACTIVE
@@ -88,10 +91,18 @@ class State:
         for neighbour in cls.NEIGHBOURS:
             yield tuple(n + dn for n, dn in zip(location, neighbour))
 
+    @staticmethod
+    def _neighbour_offsets(dimensions: int) -> list[Location]:
+        return [
+            location
+            for location in product((-1, 0, 1), repeat=dimensions)
+            if any(value != 0 for value in location)
+        ]
 
-def puzzle(initial_state: str, rounds: int) -> int:
-    state = State.from_string(initial_state)
-    for _ in range(rounds):
+
+def puzzle(initial_state: str, *, cycles: int, dimensions: int) -> int:
+    state = State.create(dimensions, initial_state)
+    for _ in range(cycles):
         state = state.cycle()
     return state.active_cell_count
 
@@ -104,8 +115,11 @@ class PuzzleTests(TestCase):
         ###
     """).strip()
 
-    def test_puzzle(self):
-        self.assertEqual(848, puzzle(self.example, 6))
+    def test_puzzle_4d(self):
+        self.assertEqual(848, puzzle(self.example, cycles=6, dimensions=4))
+
+    def test_puzzle_3d(self):
+        self.assertEqual(112, puzzle(self.example, cycles=6, dimensions=3))
 
 
 if __name__ == "__main__":
@@ -118,4 +132,4 @@ if __name__ == "__main__":
         ######.#
         .####..#
         .###.#..
-    """).strip(), 6))
+    """).strip(), cycles=6, dimensions=4))
