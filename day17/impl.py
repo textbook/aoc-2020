@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 from __future__ import annotations
+
+from itertools import product
 from textwrap import dedent
 from typing import Generator
 from unittest import TestCase
 
+DIMENSIONS = 3
 Location = tuple[int, int, int]
 
 
@@ -18,50 +21,41 @@ class State:
     ACTIVE = "#"
     INACTIVE = "."
     NEIGHBOURS = [
-        (-1, -1, -1), (+0, -1, -1), (+1, -1, -1),
-        (-1, +0, -1), (+0, +0, -1), (+1, +0, -1),
-        (-1, +1, -1), (+0, +1, -1), (+1, +1, -1),
-
-        (-1, -1, +0), (+0, -1, +0), (+1, -1, +0),
-        (-1, +0, +0), (+1, +0, +0),
-        (-1, +1, +0), (+0, +1, +0), (+1, +1, +0),
-
-        (-1, -1, +1), (+0, -1, +1), (+1, -1, +1),
-        (-1, +0, +1), (+0, +0, +1), (+1, +0, +1),
-        (-1, +1, +1), (+0, +1, +1), (+1, +1, +1),
+        location
+        for location in product((-1, 0, 1), repeat=DIMENSIONS)
+        if any(value != 0 for value in location)
     ]
 
     def __init__(self, active_cells: set[Location]):
         self._active_cells = active_cells
-        self._bounds = (
-            (min(x for x, _, _ in active_cells), max(x for x, _, _ in active_cells)),
-            (min(y for _, y, _ in active_cells), max(y for _, y, _ in active_cells)),
-            (min(z for _, _, z in active_cells), max(z for _, _, z in active_cells)),
-        )
+        self._bounds = [
+            (
+                min(location[dimension] for location in active_cells),
+                max(location[dimension] for location in active_cells),
+            )
+            for dimension in range(DIMENSIONS)
+        ]
 
     def __str__(self):
-        (min_x, max_x), (min_y, max_y), (min_z, max_z) = self._bounds
+        (min_x, max_x), (min_y, max_y), *higher = self._bounds
         return "\n\n".join(
-            "\n".join([f"z={z}"] + [
+            "\n".join([", ".join(f"{label}={value}" for label, value in zip("zw", location))] + [
                 "".join(
                     self.ACTIVE
-                    if (x, y, z) in self._active_cells
+                    if (x, y, *location) in self._active_cells
                     else self.INACTIVE
                     for x in range(min_x, max_x + 1)
                 )
                 for y in range(min_y, max_y + 1)
             ])
-            for z in range(min_z, max_z + 1)
+            for location in product(*(range(min_, max_ + 1) for min_, max_ in higher))
         )
 
     def cycle(self) -> State:
-        (min_x, max_x), (min_y, max_y), (min_z, max_z) = self._bounds
         return type(self)({
-            (x, y, z)
-            for z in range(min_z - 1, max_z + 2)
-            for y in range(min_y - 1, max_y + 2)
-            for x in range(min_x - 1, max_x + 2)
-            if self._is_active((x, y, z))
+            location
+            for location in product(*(range(min_ - 1, max_ + 2) for min_, max_ in self._bounds))
+            if self._is_active(location)
         })
 
     @property
@@ -82,7 +76,7 @@ class State:
     @classmethod
     def from_string(cls, initial_state: str) -> State:
         return cls({
-            (x, y, 0)
+            (x, y, *(0 for _ in range(DIMENSIONS - 2)))
             for y, row in enumerate(initial_state.split("\n"))
             for x, value in enumerate(row)
             if value == cls.ACTIVE
@@ -90,9 +84,8 @@ class State:
 
     @classmethod
     def _neighbours(cls, location: Location) -> Generator[Location, None, None]:
-        x, y, z = location
-        for dx, dy, dz in cls.NEIGHBOURS:
-            yield x + dx, y + dy, z + dz
+        for neighbour in cls.NEIGHBOURS:
+            yield tuple(n + dn for n, dn in zip(location, neighbour))
 
 
 def puzzle(initial_state: str, rounds: int) -> int:
