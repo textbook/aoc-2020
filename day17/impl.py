@@ -6,8 +6,8 @@ from textwrap import dedent
 from typing import Generator
 from unittest import TestCase
 
-DIMENSIONS = 3
-Location = tuple[int, int, int]
+DIMENSIONS = 4
+Location = tuple[int, int, int, int]
 
 
 class State:
@@ -104,7 +104,7 @@ class PuzzleTests(TestCase):
     """).strip()
 
     def test_puzzle(self):
-        self.assertEqual(112, puzzle(self.example, 6))
+        self.assertEqual(848, puzzle(self.example, 6))
 
 
 if __name__ == "__main__":
