@@ -18,7 +18,7 @@ class Tile:
     def __init__(self, id_: int, borders: tuple[int, int, int, int]):
         self.id_ = id_
         self.borders = borders
-        self._flipped: Tile = None
+        self._flips: dict[tuple[bool, bool], Tile] = dict()
 
     def __eq__(self, other: Any) -> bool:
         return isinstance(other, Tile) and self.id_ == other.id_
@@ -29,14 +29,17 @@ class Tile:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.id_}, {self.borders!r})"
 
-    def flipped(self) -> Tile:
-        if self._flipped is None:
+    def flip(self, *, vertically: bool, horizontally: bool) -> Tile:
+        if not vertically and not horizontally:
+            return self
+        if (vertically, horizontally) not in self._flips:
             top, right, bottom, left = self.borders
-            self._flipped = Tile(
-                self.id_,
-                (self._flip(bottom), self._flip(left), self._flip(top), self._flip(right))
-            )
-        return self._flipped
+            if vertically:
+                top, right, bottom, left = bottom, self._flip(right), top, self._flip(left)
+            if horizontally:
+                top, right, bottom, left = self._flip(top), left, self._flip(bottom), right
+            self._flips[vertically, horizontally] = Tile(self.id_, (top, right, bottom, left))
+        return self._flips[vertically, horizontally]
 
     @classmethod
     def from_string(cls, data: str):
@@ -71,23 +74,35 @@ def puzzle(data: str) -> int:
 
 
 def _get_connections(tiles: list[Tile]) -> dict[Tile, set[Tile]]:
+    border_map = _create_border_map(tiles)
+    return _create_connection_map(tiles, border_map)
+
+
+def _create_connection_map(
+    tiles: list[Tile],
+    border_map: dict[int, list[Tile]],
+) -> dict[Tile, set[Tile]]:
+    connections: dict[Tile, set[Tile]] = defaultdict(set)
+    for tile in tiles:
+        for border in tile.borders:
+            for t in border_map[border]:
+                if t != tile:
+                    connections[tile].add(t)
+        for border in tile.flip(vertically=True, horizontally=True).borders:
+            for t in border_map[border]:
+                if t != tile:
+                    connections[tile].add(t)
+    return connections
+
+
+def _create_border_map(tiles: list[Tile]) -> dict[int, list[Tile]]:
     border_map: dict[int, list[Tile]] = defaultdict(list)
     for tile in tiles:
         for border in tile.borders:
             border_map[border].append(tile)
-        for border in tile.flipped().borders:
+        for border in tile.flip(vertically=True, horizontally=True).borders:
             border_map[border].append(tile)
-    connections: dict[Tile, set[Tile]] = defaultdict(set)
-    for tile in tiles:
-        for border in tile.borders:
-            for im in border_map[border]:
-                if im != tile:
-                    connections[tile].add(im)
-        for border in tile.flipped().borders:
-            for im in border_map[border]:
-                if im != tile:
-                    connections[tile].add(im)
-    return connections
+    return border_map
 
 
 class PuzzleTests(TestCase):
