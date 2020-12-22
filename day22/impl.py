@@ -27,12 +27,12 @@ def _recursive_combat(p1_cards: deque[int], p2_cards: deque[int]) -> bool:
         seen.add(state)
         p1_card = p1_cards.popleft()
         p2_card = p2_cards.popleft()
-        if p1_card <= len(p1_cards) and p2_card <= len(p2_cards):
-            if _recursive_combat(_slice_deck(p1_cards, p1_card), _slice_deck(p2_cards, p2_card)):
-                p1_cards.extend([p1_card, p2_card])
-            else:
-                p2_cards.extend([p2_card, p1_card])
-        elif p1_card > p2_card:
+        p1_wins = (
+            p1_card > p2_card
+            if len(p1_cards) < p1_card or len(p2_cards) < p2_card
+            else _recursive_combat(_slice_deck(p1_cards, p1_card), _slice_deck(p2_cards, p2_card))
+        )
+        if p1_wins:
             p1_cards.extend([p1_card, p2_card])
         else:
             p2_cards.extend([p2_card, p1_card])
